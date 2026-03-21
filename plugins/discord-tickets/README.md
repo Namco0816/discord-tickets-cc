@@ -2,11 +2,14 @@
 
 A Claude Code plugin that maps each session to a Discord forum thread. Chat with Claude Code from your phone, approve permissions with emoji reactions, and manage sessions as forum posts.
 
+Inspired by the official [Discord channel plugin](https://github.com/anthropics/claude-plugins-official/tree/main/external_plugins/discord) by Anthropic.
+
 ## Features
 
 - **Forum thread per session** — each Claude Code session creates a Discord forum post
 - **Two-way interaction** — send messages in Discord, get responses from Claude
 - **Permission approval via reactions** — Bash commands prompt in Discord with ✅ Yes / 🔓 Yes for all / ❌ No
+- **AskUserQuestion forwarding** — when Claude asks you a question with options, it appears in Discord for you to answer
 - **Persistent typing indicator** — shows "typing..." while Claude is working
 - **Session lifecycle** — thread archives when session ends, shows duration
 - **Orchestrator** (optional) — create a forum post in Discord to auto-spawn a Claude session on your server
@@ -37,33 +40,18 @@ chmod 600 ~/.claude/channels/discord/.env
 
 ### 4. Install the Plugin
 
-**Option A: From GitHub (recommended)**
-
 ```bash
 # Add the marketplace
-claude plugin marketplace add github:Namco0816/discord-tickets-cc
+claude plugin marketplace add Namco0816/discord-tickets-cc
 
 # Install the plugin
-claude plugin install discord-tickets@discord-tickets-cc
-```
-
-**Option B: Local install**
-
-```bash
-# Clone the repo
-git clone https://github.com/Namco0816/discord-tickets-cc.git
-
-# Add as local marketplace
-claude plugin marketplace add /path/to/discord-tickets
-
-# Install
 claude plugin install discord-tickets@discord-tickets-cc
 ```
 
 ### 5. Launch
 
 ```bash
-# Forward mode: start Claude, interact via Discord
+cd ~/my-project
 claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets-cc"
 ```
 
@@ -71,7 +59,9 @@ A forum post will be created automatically. Send messages there to interact with
 
 ## Usage Modes
 
-### Forward Mode (recommended)
+You can run both modes simultaneously — they don't conflict.
+
+### Forward Mode
 
 Start a Claude Code session manually — a forum thread is created for interaction:
 
@@ -80,7 +70,7 @@ cd ~/my-project
 claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets-cc"
 ```
 
-You can also set a thread title via environment variable:
+Set a custom thread title:
 
 ```bash
 TICKET_SESSION_NAME="Fix auth bug" claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets-cc"
@@ -88,11 +78,11 @@ TICKET_SESSION_NAME="Fix auth bug" claude --dangerously-load-development-channel
 
 ### Backward Mode (orchestrator)
 
-A persistent process watches the forum channel. When someone creates a forum post in Discord, a Claude Code session spawns automatically on your server in a tmux window. Closing/archiving the post terminates the session.
+A persistent process watches the forum channel. When someone creates a forum post in Discord, a Claude Code session spawns automatically on your server in a tmux window.
 
 **Prerequisites:**
-- The plugin must be installed (steps 1–3 above)
-- `tmux` must be installed (`sudo apt install tmux` or `brew install tmux`)
+- The plugin must be installed (steps 1–4 above)
+- `tmux` (`sudo apt install tmux` or `brew install tmux`)
 - Python 3.8+ with `discord.py` (`pip install discord.py`)
 
 **Setup:**
@@ -120,6 +110,28 @@ python orchestrator.py --allowed-users 123456789 987654321
 
 # Full example
 python orchestrator.py --working-dir ~/projects --max-sessions 3 --timeout 120
+```
+
+**Run 24/7 in background:**
+
+```bash
+# Start in a detached tmux session
+tmux new-session -d -s cct-orchestrator "cd /path/to/discord-tickets-cc/plugins/discord-tickets && python orchestrator.py"
+
+# View logs
+tmux attach -t cct-orchestrator
+# Detach: Ctrl+B then D
+
+# Stop
+tmux kill-session -t cct-orchestrator
+```
+
+To survive server reboots, add to crontab:
+
+```bash
+crontab -e
+# Add:
+@reboot tmux new-session -d -s cct-orchestrator "cd /path/to/discord-tickets-cc/plugins/discord-tickets && python orchestrator.py"
 ```
 
 **How it works:**
@@ -168,6 +180,12 @@ When prompted, react with:
 - 🔓 **Yes for all** — approve all future calls of this tool type (session-scoped)
 - ❌ **No** — deny
 
+## Interactive Features
+
+- **AskUserQuestion** — when Claude asks a question with options, it appears in the Discord thread as a numbered list. Reply with a number or type your answer.
+- **Plan mode** — say "plan this first" in Discord and Claude enters plan mode naturally. Say "go ahead" to exit.
+- **Multi-turn conversations** — Claude maintains full context across messages in the thread.
+
 ## How It Works
 
 ```
@@ -176,7 +194,7 @@ Discord Forum Channel
         ▼
 ┌──────────────┐     stdio      ┌──────────────┐
 │  MCP Plugin  │◄──────────────►│  Claude Code  │
-│  (server.ts) │                │              │
+│  (server.ts) │                │               │
 │  - discord.js│                │  Your IDE /   │
 │  - 1 thread  │                │  Terminal     │
 └──────────────┘                └──────────────┘
@@ -196,25 +214,6 @@ The plugin is an MCP server that:
 - Python 3.8+ and `discord.py` (for orchestrator only)
 - `tmux` (for orchestrator only)
 - `jq` and `curl` (for permission hook)
-
-## Plugin Structure
-
-```
-discord-tickets/
-├── .claude-plugin/
-│   └── plugin.json          # Plugin manifest
-├── .mcp.json                # MCP server definition
-├── server.ts                # MCP channel server (discord.js)
-├── package.json             # Bun dependencies
-├── hooks/
-│   ├── hooks.json           # PreToolUse hook config
-│   └── permission-hook.sh   # Reaction-based approval
-├── skills/
-│   └── configure/
-│       └── SKILL.md         # /discord-tickets:configure skill
-├── orchestrator.py          # Backward mode (optional)
-└── README.md
-```
 
 ## License
 
