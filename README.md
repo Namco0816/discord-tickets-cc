@@ -41,7 +41,7 @@ chmod 600 ~/.claude/channels/discord/.env
 
 ```bash
 # Add the marketplace
-claude plugin marketplace add github:YOUR_USERNAME/discord-tickets
+claude plugin marketplace add github:Namco0816/discord-tickets-cc
 
 # Install the plugin
 claude plugin install discord-tickets@discord-tickets
@@ -51,7 +51,7 @@ claude plugin install discord-tickets@discord-tickets
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/discord-tickets.git
+git clone https://github.com/Namco0816/discord-tickets-cc.git
 
 # Add as local marketplace
 claude plugin marketplace add /path/to/discord-tickets
