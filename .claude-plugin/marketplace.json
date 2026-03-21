@@ -10,10 +10,7 @@
     {
       "name": "discord-tickets",
       "description": "Map Claude Code sessions to Discord forum threads with reaction-based permission approval.",
-      "source": {
-        "source": "local",
-        "path": "."
-      }
+      "source": "./plugins/discord-tickets"
     }
   ]
 }
