@@ -44,7 +44,7 @@ chmod 600 ~/.claude/channels/discord/.env
 claude plugin marketplace add github:Namco0816/discord-tickets-cc
 
 # Install the plugin
-claude plugin install discord-tickets@discord-tickets
+claude plugin install discord-tickets@discord-tickets-cc
 ```
 
 **Option B: Local install**
@@ -57,14 +57,14 @@ git clone https://github.com/Namco0816/discord-tickets-cc.git
 claude plugin marketplace add /path/to/discord-tickets
 
 # Install
-claude plugin install discord-tickets@discord-tickets
+claude plugin install discord-tickets@discord-tickets-cc
 ```
 
 ### 5. Launch
 
 ```bash
 # Forward mode: start Claude, interact via Discord
-claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets"
+claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets-cc"
 ```
 
 A forum post will be created automatically. Send messages there to interact with Claude.
@@ -77,34 +77,70 @@ Start a Claude Code session manually — a forum thread is created for interacti
 
 ```bash
 cd ~/my-project
-claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets"
+claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets-cc"
 ```
 
 You can also set a thread title via environment variable:
 
 ```bash
-TICKET_SESSION_NAME="Fix auth bug" claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets"
+TICKET_SESSION_NAME="Fix auth bug" claude --dangerously-load-development-channels "plugin:discord-tickets@discord-tickets-cc"
 ```
 
 ### Backward Mode (orchestrator)
 
-A persistent process watches the forum channel. Create a post in Discord → a Claude session spawns automatically on your server.
+A persistent process watches the forum channel. When someone creates a forum post in Discord, a Claude Code session spawns automatically on your server in a tmux window. Closing/archiving the post terminates the session.
+
+**Prerequisites:**
+- The plugin must be installed (steps 1–3 above)
+- `tmux` must be installed (`sudo apt install tmux` or `brew install tmux`)
+- Python 3.8+ with `discord.py` (`pip install discord.py`)
+
+**Setup:**
 
 ```bash
-# Install dependencies
-pip install discord.py
+# Clone the repo (needed to run the orchestrator script)
+git clone https://github.com/Namco0816/discord-tickets-cc.git
+cd discord-tickets-cc/plugins/discord-tickets
 
-# Start the orchestrator
+# Install Python dependency
+pip install discord.py
+```
+
+**Launch:**
+
+```bash
+# Basic — uses channel ID from ~/.claude/channels/discord/.env
 python orchestrator.py
 
-# With options
+# Specify working directory for spawned sessions
+python orchestrator.py --working-dir ~/my-project
+
+# Restrict who can create sessions (Discord user IDs)
+python orchestrator.py --allowed-users 123456789 987654321
+
+# Full example
 python orchestrator.py --working-dir ~/projects --max-sessions 3 --timeout 120
 ```
 
-Each session runs in a tmux window. Attach to any session:
+**How it works:**
+1. You create a forum post in Discord (e.g., "Fix the auth bug")
+2. The orchestrator detects it and spawns `claude` in a tmux window
+3. Claude connects to that thread — you interact entirely from Discord
+4. When you archive/close the post, the session terminates
+
+**Managing sessions:**
 
 ```bash
+# List active sessions
+tmux list-sessions | grep cct-
+
+# Attach to a session (see what Claude is doing in terminal)
 tmux attach -t cct-<thread_id>
+
+# Detach from tmux: Ctrl+B then D
+
+# Manually kill a session
+tmux kill-session -t cct-<thread_id>
 ```
 
 ### Orchestrator Options
