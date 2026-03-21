@@ -1,0 +1,16 @@
+{
+  "description": "Forward permission prompts to the Discord ticket thread with reaction-based approval (Yes / Yes for all / No).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/permission-hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "discord-tickets",
+  "version": "1.0.0",
+  "description": "Discord forum ticket channels for Claude Code — each session maps to a forum thread",
+  "owner": {
+    "name": "Ray"
+  },
+  "plugins": [
+    {
+      "name": "discord-tickets",
+      "description": "Map Claude Code sessions to Discord forum threads with reaction-based permission approval.",
+      "source": "."
+    }
+  ]
+}

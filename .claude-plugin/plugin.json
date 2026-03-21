@@ -1,0 +1,12 @@
+{
+  "name": "discord-tickets",
+  "version": "0.1.0",
+  "description": "Discord forum ticket channel for Claude Code — each session maps to a forum thread. Permission prompts are forwarded to Discord with reaction-based approval.",
+  "keywords": [
+    "discord",
+    "tickets",
+    "channel",
+    "forum",
+    "mcp"
+  ]
+}

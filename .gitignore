@@ -1,0 +1,9 @@
+node_modules/
+bun.lock
+*.lock
+.env
+.env.*
+dist/
+build/
+__pycache__/
+*.pyc
