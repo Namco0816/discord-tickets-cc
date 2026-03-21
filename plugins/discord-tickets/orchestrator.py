@@ -147,15 +147,14 @@ class CCTicketOrchestrator:
 
         logger.info(f"New thread {tid} ({thread.name}) — spawning session in tmux:{tmux_name}")
 
-        # Use a login shell so Claude Code finds its plugins and config
-        shell_cmd = (
-            f'export TICKET_THREAD_ID="{tid}" TICKET_CHANNEL_ID="{self.channel_id}"; '
-            f'exec claude --dangerously-skip-permissions '
-            f'--dangerously-load-development-channels "plugin:discord-tickets@discord-tickets-cc"'
-        )
         cmd = [
             "tmux", "new-session", "-d", "-s", tmux_name, "-c", self.working_dir,
-            "bash", "-lc", shell_cmd,
+            "env",
+            f"TICKET_THREAD_ID={tid}",
+            f"TICKET_CHANNEL_ID={self.channel_id}",
+            "claude",
+            "--dangerously-skip-permissions",
+            "--dangerously-load-development-channels", "plugin:discord-tickets@discord-tickets-cc",
         ]
 
         try:
