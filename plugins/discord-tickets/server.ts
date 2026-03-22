@@ -204,6 +204,31 @@ function writeCoordFile(threadId: string): void {
   }
 }
 
+// ---- Session state (for resume) ----
+// Persist session ID + workspace per thread so the orchestrator can resume
+// with full context instead of spawning a blank session.
+const THREADS_DIR = join(STATE_DIR, 'threads')
+
+function writeSessionState(threadId: string): void {
+  const sessionId = process.env.CLAUDE_CODE_SESSION_ID
+  if (!sessionId) {
+    process.stderr.write('cc-ticket: CLAUDE_CODE_SESSION_ID not set — resume will start fresh\n')
+    return
+  }
+  try {
+    mkdirSync(THREADS_DIR, { recursive: true })
+    const state = {
+      session_id: sessionId,
+      workspace: USER_CWD,
+      updated_at: Date.now(),
+    }
+    writeFileSync(join(THREADS_DIR, `${threadId}.json`), JSON.stringify(state, null, 2) + '\n')
+    process.stderr.write(`cc-ticket: saved session state for thread ${threadId} (session ${sessionId})\n`)
+  } catch (err) {
+    process.stderr.write(`cc-ticket: failed to write session state: ${err}\n`)
+  }
+}
+
 // ---- Thread lifecycle ----
 
 async function createOrAttachThread(): Promise<ThreadChannel> {
@@ -632,6 +657,7 @@ client.once('ready', async c => {
   process.stderr.write(`cc-ticket: gateway connected as ${c.user.tag}\n`)
   try {
     ticketThread = await createOrAttachThread()
+    writeSessionState(ticketThread.id)
     process.stderr.write(`cc-ticket: ready — thread ${ticketThread.id}\n`)
   } catch (err) {
     process.stderr.write(`cc-ticket: failed to create/attach thread: ${err}\n`)
