@@ -69,7 +69,7 @@ async def _run(*cmd: str, timeout: float = 10) -> _ProcResult:
 
 class CCTicketOrchestrator:
     def __init__(self, channel_id: str, allowed_users: list = None,
-                 max_sessions: int = 5, timeout_minutes: int = 60,
+                 max_sessions: int = 5, timeout_minutes: int = 0,
                  working_dir: str = None):
         self.channel_id = channel_id
         self.allowed_users = set(allowed_users or [])
@@ -397,7 +397,7 @@ def main():
     parser.add_argument("--channel", "-c", default=None, help="Forum channel ID (default: from .env)")
     parser.add_argument("--allowed-users", "-u", nargs="*", default=None, help="Allowed Discord user IDs")
     parser.add_argument("--max-sessions", "-m", type=int, default=5, help="Max concurrent sessions")
-    parser.add_argument("--timeout", "-t", type=int, default=60, help="Inactivity timeout (minutes, 0=disable)")
+    parser.add_argument("--timeout", "-t", type=int, default=0, help="Inactivity timeout (minutes, 0=disable)")
     parser.add_argument("--working-dir", "-d", default=None, help="Working directory for claude sessions")
     args = parser.parse_args()
 
